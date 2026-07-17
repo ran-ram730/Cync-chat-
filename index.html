@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cync Chat - Advanced Cyber Steganography Suite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --border: #334155;
+            --card-glow: rgba(99, 102, 241, 0.1);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --success: #059669;
+            --border: #e2e8f0;
+            --card-glow: rgba(79, 70, 229, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar Layout */
+        nav {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* Main Workspace */
+        .main-container {
+            flex: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 900px) {
+            .main-container {
+                grid-template-columns: 250px 1fr;
+            }
+        }
+
+        /* Sidebar Tabs */
+        .sidebar {
+            display: flex;
+            flex-direction: row;
+            gap: 0.5rem;
+            background-color: var(--bg-secondary);
+            padding: 0.75rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            height: fit-content;
+        }
+
+        @media (min-width: 900px) {
+            .sidebar {
+                flex-direction: column;
+            }
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+        }
+
+        .tab-btn.active {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background-color: var(--border);
+            color: var(--text-main);
+        }
+
+        /* Content Panel Layout */
+        .panel {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px var(--card-glow);
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            margin-bottom: 0.5rem;
+            font-size: 1.75rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Drag & Drop Zone */
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 2.5rem;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            background-color: rgba(0,0,0,0.02);
+            margin-bottom: 1.5rem;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--accent);
+            background-color: rgba(99, 102, 241, 0.02);
+        }
+
+        .drop-zone i {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .drop-zone input {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* Preview Windows */
+        .preview-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .preview-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .img-wrapper {
+            background: rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            max-height: 350px;
+        }
+
+        .img-wrapper img {
+            max-width: 100%;
+            max-height: 330px;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
+        /* Form Controllers */
+        .control-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        input[type="text"], input[type="password"], textarea {
+            width: 100%;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-radius: 8px;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        textarea {
+            padding: 1rem;
+            height: 120px;
+            resize: none;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Dashboard Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .metric-card {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .metric-card span {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-card strong {
+            font-size: 1.1rem;
+            color: var(--accent);
+        }
+
+        /* Action Buttons */
+        .btn-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        btn, button.action-btn {
+            flex: 1;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.85rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        btn:hover, button.action-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+        }
+        .btn-success:hover {
+            background-color: #059669;
+        }
+
+        /* Info Alerts */
+        .alert {
+            background-color: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid var(--accent);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        /* Terminal Output Style for Reveal */
+        .output-box {
+            background-color: #0b0f19;
+            border: 1px solid #1e293b;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 1.25rem;
+            border-radius: 8px;
+            color: #38bdf8;
+            min-height: 80px;
+            word-break: break-all;
+            margin-top: 1.5rem;
+            white-space: pre-wrap;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: auto;
+            border-top: 1px solid var(--border);
+            background-color: var(--bg-secondary);
+        }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <nav>
+        <div class="logo">
+            <i class="fa-solid fa-user-shield"></i> Cync Chat v2.0
+        </div>
+        <div class="nav-actions">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Change Theme">
+                <i class="fa-solid fa-sun" id="themeIcon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        
+        <div class="sidebar">
+            <button class="tab-btn active" onclick="changePanel('encode-panel', this)">
+                <i class="fa-solid fa-lock"></i> Hide Message
+            </button>
+            <button class="tab-btn" onclick="changePanel('decode-panel', this)">
+                <i class="fa-solid fa-lock-open"></i> Reveal Message
+            </button>
+            <button class="tab-btn" onclick="changePanel('docs-panel', this)">
+                <i class="fa-solid fa-circle-info"></i> How it works
+            </button>
+        </div>
+
+        <div id="encode-panel" class="panel active">
+            <h2>Hide Data inside Images</h2>
+            <p class="subtitle">Secure your private text streams within standard PNG containers using strategic bit injection.</p>
+
+            <div class="drop-zone" id="encode-dropzone">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <p>Drag & drop your source image here or <strong>Browse</strong></p>
+                <input type="file" id="encode-file-input" accept="image/png, image/jpeg">
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span>Resolution</span>
+                    <strong id="m-res">-</strong>
+                </div>
+                <div class="metric-card">
+                    <span>Max Payload Capacity</span>
+                    <strong id="m-cap">-</strong>
+                </div>
+                <div class="metric-card">
+                    <span>Text Length Count</span>
+                    <strong id="m-len">0 Chars</strong>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Secret Payload (Message)</label>
+                <textarea id="encode-text" placeholder="Write the secret note or chat data log..." oninput="calculateLength()"></textarea>
+            </div>
+
+            <div class="control-group">
+                <label>System Access Password (Optional)</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" id="encode-pass" placeholder="Enter custom security key to encrypt payload">
+                </div>
+            </div>
+
+            <button class="action-btn" onclick="executeEncoding()">
+                <i class="fa-solid fa-gear fa-spin-hover"></i> Process & Inject Message
+            </button>
+
+            <div class="preview-container" id="encode-preview-zone" style="display:none;">
+                <div>
+                    <label>Original Input Monitor</label>
+                    <div class="img-wrapper">
+                        <img id="orig-view" src="" alt="Original Image">
+                    </div>
+                </div>
+                <div>
+                    <label>Generated Stego Output</label>
+                    <div class="img-wrapper">
+                        <img id="stego-view" src="" alt="Stego Output Image">
+                    </div>
+                    <div class="btn-row">
+                        <button class="action-btn btn-success" id="download-stego-btn">
+                            <i class="fa-solid fa-download"></i> Save Image (.png)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="decode-panel" class="panel">
+            <h2>Extract Data from Image</h2>
+            <p class="subtitle">Upload target digital asset matrix to scan, extract and decipher embedded LSB data.</p>
+
+            <div class="drop-zone" id="decode-dropzone">
+                <i class="fa-solid fa-qrcode"></i>
+                <p>Upload encoded stego asset element or <strong>Browse</strong></p>
+                <input type="file" id="decode-file-input" accept="image/png">
+            </div>
+
+            <div class="control-group">
+                <label>Extraction Decryption Key (Leave blank if none)</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-unlock-keyhole"></i>
+                    <input type="password" id="decode-pass" placeholder="Enter the secret key used during packaging">
+                </div>
+            </div>
+
+            <button class="action-btn" onclick="executeDecoding()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Process & Extract Text
+            </button>
+
+            <div id="decode-result-zone" style="display:none;">
+                <label style="margin-top: 1.5rem;">Decoded Matrix Output Stream</label>
+                <div class="output-box" id="decoded-output-text"></div>
+            </div>
+        </div>
+
+        <div id="docs-panel" class="panel">
+            <h2>Steganography Architecture Architecture</h2>
+            <p class="subtitle">Understanding Cync Chat Engineering Framework Matrix.</p>
+            
+            <div class="alert">
+                <strong>Steganography</strong> is the practice of concealing a file, message, image, or video within another file, message, image, or video.
+            </div>
+
+            <h3 style="margin: 1.5rem 0 0.5rem 0;">1. Least Significant Bit (LSB) Allocation</h3>
+            <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem;">
+                Every pixel inside standard computer screens consists of three key color components: Red, Green, and Blue ($RGB$). Each primary color value is stored as an 8-bit byte integer sequence scaling values from $0$ up to $255$.
+                Our processing framework alters the lowest-order bit index (the LSB) inside these RGB components. Since tweaking this integer alters color structural integrity by less than 1%, human sight systems perceive no modification.
+            </p>
+
+            <h3 style="margin: 1.5rem 0 0.5rem 0;">2. AES Data Cryptographic Protection Protocol</h3>
+            <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem;">
+                If a user submits an arbitrary encryption key password during processing tasks, the framework triggers an Advanced Encryption Standard (AES) rendering routine via the processing architecture. The text becomes base64 scrambled strings before getting transformed into binary values, enforcing zero system data exposure.
+            </p>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Cync Chat Labs Core Engine. All operations are sandboxed inside local client nodes.</p>
+    </footer>
+
+    <script>
+        // Core state configurations
+        let loadedOriginalImage = null;
+        let loadedStegoImage = null;
+
+        // Theme Switch Architecture Execution
+        function toggleTheme() {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const targetTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            const icon = document.getElementById('themeIcon');
+            
+            document.body.setAttribute('data-theme', targetTheme);
+            if(targetTheme === 'light') {
+                icon.className = "fa-solid fa-moon";
+            } else {
+                icon.className = "fa-solid fa-sun";
+            }
+        }
+
+        // Sidebar Navigation Switch Controller Logic
+        function changePanel(panelId, element) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(panelId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        // Length Meter Processing Counter
+        function calculateLength() {
+            const text = document.getElementById('encode-text').value;
+            document.getElementById('m-len').innerText = text.length + " Chars";
+        }
+
+        // Binary Utilities Engine Layer Code Mapping
+        function stringToBinaryStream(stringInput) {
+            let stream = "";
+            for (let i = 0; i < stringInput.length; i++) {
+                let binaryValue = stringInput[i].charCodeAt(0).toString(2);
+                stream += binaryValue.padStart(8, '0');
+            }
+            return stream;
+        }
+
+        function binaryStreamToString(binaryInput) {
+            let processedString = "";
+            for (let i = 0; i < binaryInput.length; i += 8) {
+                let unitChunk = binaryInput.substr(i, 8);
+                if (unitChunk.length < 8) break;
+                let calculatedCharacterCode = parseInt(unitChunk, 2);
+                if (calculatedCharacterCode === 0) break; // End of transmission signature sequence
+                processedString += String.fromCharCode(calculatedCharacterCode);
+            }
+            return processedString;
+        }
+
+        // Live Processing Event Handlers Config mapping for Drag & Drop Functionalities
+        function registerDropzoneLogic(dropzoneId, inputId, onProcessCallback) {
+            const dropZoneElement = document.getElementById(dropzoneId);
+            const inputElement = document.getElementById(inputId);
+
+            inputElement.addEventListener('change', (e) => {
+                if(e.target.files.length) onProcessCallback(e.target.files[0]);
+            });
+
+            dropZoneElement.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZoneElement.classList.add('dragover');
+            });
+
+            ['dragleave', 'drop'].forEach(evtName => {
+                dropZoneElement.addEventListener(evtName, () => dropZoneElement.classList.remove('dragover'));
+            });
+
+            dropZoneElement.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if(e.dataTransfer.files.length) {
+                    inputElement.files = e.dataTransfer.files;
+                    onProcessCallback(e.dataTransfer.files[0]);
+                }
+            });
+        }
+
+        // Processing Input Source Pipelines Setup Call
+        registerDropzoneLogic('encode-dropzone', 'encode-file-input', (fileObj) => {
+            const fileReaderInstance = new FileReader();
+            fileReaderInstance.onload = function(evt) {
+                loadedOriginalImage = new Image();
+                loadedOriginalImage.onload = function() {
+                    document.getElementById('orig-view').src = evt.target.result;
+                    document.getElementById('m-res').innerText = `${loadedOriginalImage.width} x ${loadedOriginalImage.height}`;
+                    
+                    // Capacity parameters quantification criteria rules
+                    let totalPixelArraySlots = loadedOriginalImage.width * loadedOriginalImage.height * 3; 
+                    let maximumCharactersCapacity = Math.floor((totalPixelArraySlots - 8) / 8);
+                    document.getElementById('m-cap').innerText = maximumCharactersCapacity.toLocaleString() + " Chars";
+                };
+                loadedOriginalImage.src = evt.target.result;
+            };
+            fileReaderInstance.readAsDataURL(fileObj);
+        });
+
+        registerDropzoneLogic('decode-dropzone', 'decode-file-input', (fileObj) => {
+            const fileReaderInstance = new FileReader();
+            fileReaderInstance.onload = function(evt) {
+                loadedStegoImage = new Image();
+                loadedStegoImage.src = evt.target.result;
+            };
+            fileReaderInstance.readAsDataURL(fileObj);
+        });
+
+        // ==========================================
+        // ENCODING CONTROLLER EXECUTION MATRIX MODULE
+        // ==========================================
+        function executeEncoding() {
+            if(!loadedOriginalImage) {
+                alert("Core Failure: Target canvas container element must be allocated first.");
+                return;
+            }
+
+            let messagePayload = document.getElementById('encode-text').value;
+            const passwordSecurityToken = document.getElementById('encode-pass').value;
+
+            if(!messagePayload) {
+                alert("Validation Failure: Payload space cannot evaluate empty lines.");
+                return;
+            }
+
+            // Encrypt sequence if passphrase is added to the DOM field elements
+            if(passwordSecurityToken) {
+                // Pre-pend identifier tag to know it is encrypted
+                messagePayload = "CYNC__ENC__" + CryptoJS.AES.encrypt(messagePayload, passwordSecurityToken).toString();
+            } else {
+                messagePayload = "CYNC__RAW__" + messagePayload;
+            }
+
+            // Convert string payload to complete binary map
+            const functionalBinaryStream = stringToBinaryStream(messagePayload) + "00000000"; 
+
+            // Initialize virtual rendering sandbox workspace
+            const offscreenCanvas = document.createElement('canvas');
+            const targetRenderingContext = offscreenCanvas.getContext('2d');
+            offscreenCanvas.width = loadedOriginalImage.width;
+            offscreenCanvas.height = loadedOriginalImage.height;
+            targetRenderingContext.drawImage(loadedOriginalImage, 0, 0);
+
+            const canvasImageMatrixData = targetRenderingContext.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+            const pixelByteStorageBuffer = canvasImageMatrixData.data;
+
+            if(functionalBinaryStream.length > (pixelByteStorageBuffer.length * 3 / 4)) {
+                alert("Overflow Exception: Target payload scales beyond native matrix parameters size context thresholds.");
+                return;
+            }
+
+            let processingBitPointer = 0;
+            for(let i = 0; i < pixelByteStorageBuffer.length; i++) {
+                if((i + 1) % 4 === 0) continue; // Bypass structural opacity components index elements
+
+                if(processingBitPointer < functionalBinaryStream.length) {
+                    let currentTargetBit = parseInt(functionalBinaryStream[processingBitPointer]);
+                    // Clean index boundary pointer parameter map and push value bit updates
+                    pixelByteStorageBuffer[i] = (pixelByteStorageBuffer[i] & 0xFE) | currentTargetBit;
+                    processingBitPointer++;
+                } else {
+                    break;
+                }
+            }
+
+            targetRenderingContext.putImageData(canvasImageMatrixData, 0, 0);
+            const generatedDataUrlStream = offscreenCanvas.toDataURL('image/png');
+
+            document.getElementById('stego-view').src = generatedDataUrlStream;
+            document.getElementById('encode-preview-zone').style.display = "grid";
+
+            // Inject download hook functional controls
+            document.getElementById('download-stego-btn').onclick = function() {
+                const triggerDownloadAnchor = document.createElement('a');
+                triggerDownloadAnchor.download = 'cync_chat_stego_package.png';
+                triggerDownloadAnchor.href = generatedDataUrlStream;
+                triggerDownloadAnchor.click();
+            };
+        }
+
+        // ==========================================
+        // DECODING CONTROLLER EXECUTION MATRIX MODULE
+        // ==========================================
+        function executeDecoding() {
+            if(!loadedStegoImage) {
+                alert("Core Failure: Extraction requires an encoded stego PNG asset file link input.");
+                return;
+            }
+
+            const decodingPassphraseInput = document.getElementById('decode-pass').value;
+
+            const calculationCanvas = document.createElement('canvas');
+            const calculationContext = calculationCanvas.getContext('2d');
+            calculationCanvas.width = loadedStegoImage.width;
+            calculationCanvas.height = loadedStegoImage.height;
+            calculationContext.drawImage(loadedStegoImage, 0, 0);
+
+            const sourceImageMatrixData = calculationContext.getImageData(0, 0, calculationCanvas.width, calculationCanvas.height);
+            const rawByteStorageBuffer = sourceImageMatrixData.data;
+
+            let constructionBinaryString = "";
+            for(let i = 0; i < rawByteStorageBuffer.length; i++) {
+                if((i + 1) % 4 === 0) continue; 
+
+                constructionBinaryString += (rawByteStorageBuffer[i] & 1).toString();
+
+                // Intercept terminal signature sequence to limit iterations cycle loops
+                if(constructionBinaryString.length % 8 === 0 && constructionBinaryString.endsWith("00000000")) {
+                    break;
+                }
+            }
+
+            const parsedRawStringPayload = binaryStreamToString(constructionBinaryString);
+
+            // Parsing security envelope structure types checks
+            const textDisplayBox = document.getElementById('decoded-output-text');
+            document.getElementById('decode-result-zone').style.display = "block";
+
+            if(parsedRawStringPayload.startsWith("CYNC__RAW__")) {
+                textDisplayBox.innerText = parsedRawStringPayload.replace("CYNC__RAW__", "");
+                textDisplayBox.style.color = "#10b981"; // Success tone
+            } else if(parsedRawStringPayload.startsWith("CYNC__ENC__")) {
+                const strippedCiphertext = parsedRawStringPayload.replace("CYNC__ENC__", "");
+                
+                if(!decodingPassphraseInput) {
+                    textDisplayBox.innerText = "[CRITICAL SYSTEM WARNING]: This payload structure is locked via AES encryption matrix configurations. Please provide a decryption authentication token.";
+                    textDisplayBox.style.color = "#ef4444"; // Error red alert 
+                    return;
+                }
+
+                try {
+                    const decryptedBytesCollection = CryptoJS.AES.decrypt(strippedCiphertext, decodingPassphraseInput);
+                    const completelyDecodedTextOutput = decryptedBytesCollection.toString(CryptoJS.enc.Utf8);
+                    
+                    if(!completelyDecodedTextOutput) throw new Error("Invalid Decryption Attributes");
+                    
+                    textDisplayBox.innerText = completelyDecodedTextOutput;
+                    textDisplayBox.style.color = "#10b981";
+                } catch (decryptionErrorContext) {
+                    textDisplayBox.innerText = "[EXTRACTION FAULT]: Failed to decode payload. Decryption cipher validation token misaligned or corrupt data architecture structure parameters.";
+                    textDisplayBox.style.color = "#ef4444";
+                }
+            } else {
+                textDisplayBox.innerText = "[SYSTEM SCAN MATRIX OUTPUT]: Target scan successfully executed but zero legitimate Cync Chat application signature headers identified.";
+                textDisplayBox.style.color = "#94a3b8";
+            }
+        }
+    </script>
+</body>
+</html>
